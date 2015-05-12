@@ -1,0 +1,9 @@
+---
+layout: post
+title:  "Welcome to Kenzie Togami's personal site!"
+date:   2015-05-11 20:01:06
+categories: welcome
+---
+<strike>Welcome to City 17. You have chosen, or been chosen, to relocate to one of our finest remaining urban centers.</strike>
+
+I mean, uh, hello! Welcome to my site. There's not much here yet. I might make posts here, but there's always other things over at [TechShroom Studios](http://techshoom.com), my "company" of sorts. Have fun exploring!
