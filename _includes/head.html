@@ -1,12 +1,48 @@
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<head profile="http://www.w3.org/2005/10/profile">
+    <link rel="icon" 
+          type="image/png" 
+          href="/img/techshroom_logo5.png" />
+    <title>{% if page.title %}{{ page.title }} - {% endif %}{{ site.title }}</title>
+    {% if page.description %}
+        <meta name="description" content="{{ page.description }}" />
+    {% endif %}
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
-  <meta name="description" content="{% if page.excerpt %}{{ page.excerpt | strip_html | strip_newlines | truncate: 160 }}{% else %}{{ site.description }}{% endif %}">
-
-  <link rel="stylesheet" href="{{ "/css/main.css" | prepend: site.baseurl }}">
-  <link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
-  <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ "/feed.xml" | prepend: site.baseurl | prepend: site.url }}" />
+    <link rel="stylesheet"
+      media="screen"
+      href="/css/slate.min.css"
+      type="text/css" />
+    <!-- extra CSS for proper search bar -->
+    <link rel="stylesheet"
+      media="screen"
+      href="/css/fixsearchbar.css"
+      type="text/css" />
+    <!-- extra CSS for icon svg -->
+    <link rel="stylesheet"
+      media="screen"
+      href="/css/cstm.css"
+      type="text/css" />
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="//code.jquery.com/ui/1.11.0/jquery-ui.min.js"></script>
+    <!-- Sortable tables -->
+    <link rel="stylesheet"
+      media="screen"
+      href="/css/bootstrap-sortable.css"
+      type="text/css" />
+    <script src="/js/moment.min.js"></script>
+    <script src="/js/bootstrap-sortable.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <!-- Force scrollbar -->
+    <style>
+        html { 
+            overflow-y: scroll;
+        }
+    </style>
+    <!-- Builds CSS -->
+    <link rel="stylesheet"
+      media="screen"
+      href="/css/build.css"
+      type="text/css" />
 </head>

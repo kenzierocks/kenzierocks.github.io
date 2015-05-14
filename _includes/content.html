@@ -1,0 +1,59 @@
+{% if page.layout-data == 'blog' %}
+    {% assign blogon = true %}
+{% else %}
+    {% assign blogon = false %}
+{% endif %}
+{% if page.comments == 'on' or post != null %}
+    {% assign comments = true %}
+{% else %}
+    {% assign comments = false %}
+{% endif %}
+<div class="container">
+    {% include side-mobile.html %}
+    <div class="row">
+        <div{% if blogon == false %} class="{{ include.defalign }}"{% endif %}>
+            <div class="panel panel-default">
+                {% if page.title %}
+                    <div class="panel-heading">
+                        <h3 class="panel-title"{% if blogon or post != null %} style="text-align: center"{% endif %}>
+                            {{ page.title }}
+                        </h3>
+                        <div id="wrapper" style="overflow: auto">
+                            {% if post != null and page.previous != null %}
+                                <a href="{{ page.previous.url }}" style="text-align: right; float: left">
+                                    <span class="glyphicon glyphicon-chevron-left">
+                                    </span>
+                                    {{ page.previous.title }}
+                                </a>
+                            {% endif %}
+                            {% if post != null and page.next != null %}
+                                <a href="{{ page.next.url }}" style="text-align: left; float: right">
+                                    {{ page.next.title }}
+                                    <span class="glyphicon glyphicon-chevron-right">
+                                    </span>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+                <div class="panel-body">
+                    {{ content }}
+                </div>
+                
+                <div class="panel-body">
+                    {% if comments == true %}
+                        {% include gencomments.html %}
+                    {% endif %}
+                </div>
+                {% if page.layout-data == 'main' %}
+                    {% include genprojlist.html %}
+                {% endif %}
+            </div>
+        </div>
+        {% if blogon == false %}
+            <div class="{{ include.sidealign }} hidden-xs">
+                {% include posts-list.html %}
+            </div>
+        {% endif %}
+  </div>
+</div>

@@ -1,0 +1,13 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title inline">Recent Posts</h3>
+        <a href="{{ "/feed.xml" | prepend: site.baseurl }}">
+            <span class="pull-right" style="font-size: 50%;">RSS</span>
+        </a>
+    </div>
+    <div class="panel-body">
+        {% for pg in site.posts limit:5 %}
+            &bull; {% include post-link.html pg=pg.url %}<br>
+        {% endfor %}
+    </div>
+</div>

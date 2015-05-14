@@ -3,6 +3,7 @@ layout: post
 title:  "Welcome to Kenzie Togami's personal site!"
 date:   2015-05-11 20:01:06
 categories: welcome
+excerpt: "Welcoming post."
 ---
 <strike>Welcome to City 17. You have chosen, or been chosen, to relocate to one of our finest remaining urban centers.</strike>
 
