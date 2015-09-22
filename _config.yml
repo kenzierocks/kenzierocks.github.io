@@ -1,5 +1,5 @@
 # Site settings
-title: Kenzie Togami's blogosphere
+title: "Kenzie Togami's blogosphere"
 email: admin@kenzierocks.me
 description: > # this means to ignore newlines until "baseurl:"
   A blog for kenzierocks (Kenzie Togami)
@@ -11,3 +11,6 @@ github_username:  kenzierocks
 # Build settings
 markdown: kramdown
 permalink: /:categories/:year/:month/:day/:title/
+gems:
+   - "jekyll-redirect-from"
+
