@@ -1,27 +1,11 @@
-<style type="text/css">
-.container {
-    width: 85%;
-    height: 85%;
-    position: absolute;
-    padding: 20;
-    margin: 20;
-    left: 0px;
-    top: 0px;
-    z-index: -1000;
-    overflow:hidden;
-}
-video {
-    min-height: 75%;
-    /* min-width:100%; - if fit to width */
-    position:absolute;
-    bottom:0;
-    left:0;
-}
-</style>
-<div class="container">
-<video controls="controls" preload="auto">
-    <source src="/random_files/cotton.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-</video>
-</div>
-
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width">
+</head>
+<body>
+    <video controls name="media" width="auto" height="auto">
+        <source src="/random_files/cotton.webm" type="video/webm">
+        <source src="/random_files/cotton.mp4" type="video/mp4">
+    </video>
+</body>
+</html>
