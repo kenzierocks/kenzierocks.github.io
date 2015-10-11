@@ -1,0 +1,295 @@
+---
+layout: page
+---
+<h1 id="disk-forensics-cats">Disk Forensics: Cats</h1>
+
+<h2 id="by-init-of-1064c-bread"><em>by __init__ of 1064C Bread</em></h2>
+
+<h3 id="introduction">Introduction</h3>
+
+<p>Upon opening the problem, we’re greeted by the intro message:</p>
+
+<blockquote>
+  <p>Challenge Name: Cats</p>
+</blockquote>
+
+<blockquote>
+  <p>Point Value: 450</p>
+</blockquote>
+
+<blockquote>
+  <p>Hint: I had fun once, it was horrible. Password: F3lyn34LifE!</p>
+</blockquote>
+
+<blockquote>
+  <p>Link: <a href="https://d34j1dfl6n327i.cloudfront.net/cats_51474229fe0d9bbd8da500fe3f74b383d175cee1.zip">(Link shortened)</a></p>
+</blockquote>
+
+<p>After downloading the 7.4GB virtual machine (VM), we extract it twice to different locations: one to open with VMWare Player and explore and the other to perform static analysis on. We’ll also set the readonly flag on the second one to make sure we don’t modify it. </p>
+
+<h3 id="initial-analysis">Initial analysis</h3>
+
+<p>Once our environment is set up, we can begin to analyze the VM. The first method we can try is a simple run of <code>strings</code> on the readonly copy. This’ll extract printable ascii/unicode strings from the huge jumble of blocks.</p>
+
+<p>We can use this (the <code>-n</code> specifies the number of printables to find in a row to count it as a string) and pipe the output into <code>grep</code> to look for the flag.</p>
+
+<blockquote>
+  <p><code>strings -n 10 Cats.vmdk | grep -i "flag{"</code></p>
+</blockquote>
+
+<p>Unfortunately, this doesn’t turn up anything. Let’s jump into live analysis; maybe we can find something there.</p>
+
+<p>After pointing VMWare Player to the <code>.vmx</code> and logging in with the supplied password, we’re greeted by the standard Ubuntu desktop aside from the rather . . . odd background. Let’s open up a terminal and start poking around. We’ll use <code>ls -a</code> to list the files in the home directory (the <code>-a</code> is very important! Without it, files starting with a <code>.</code> wouldn’t show up).</p>
+
+<pre><code>cats@ubuntu:~$ ls -a
+.               .cache   .dmrc             .ICEauthority  Templates
+..              catz     Documents         .local         Videos
+.bash_history   .compiz  Downloads         Music          .Xauthority
+.bash_history~  .config  examples.desktop  Pictures       .xsession-errors
+.bash_logout    .dbus    .gconf            .profile       .xsession-errors.old
+.bashrc         Desktop  .gvfs             Public
+cats@ubuntu:~$ 
+</code></pre>
+
+<p>Right off the bat, there are a couple things to note:</p>
+
+<ul>
+  <li>There’s a strange (non-standard) file called <code>catz</code></li>
+  <li>There’s a <code>.bash_history</code> file, which stores commands executed in the bash shell
+    <ul>
+      <li>There’s also a <code>.bash_history~</code> file, which is a backup of the <code>.bash_history</code> file. We’ll look at this later.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Let’s start by taking a look at the <code>catz</code> file. We can start by dumping its contents with (the strangely appropriate) <code>cat</code> command.</p>
+
+<pre><code>cats@ubuntu:~$ cat catz
+(lots of unreadable data that I've cut out)
+</code></pre>
+
+<p>Let’s see if the <code>file</code> command, which attempts to figure out the format of a file, has anything interesting to say. It could be some random binary format that’s read with a particular program:</p>
+
+<pre><code>cats@ubuntu:~$ file catz
+catz: data
+cats@ubuntu:~$ 
+</code></pre>
+
+<p><em>Thank you for that insightful comment, file</em></p>
+
+<p>At this point, we can conclude that <code>catz</code> is probably</p>
+
+<ul>
+  <li>some sort of random binary data with no headers</li>
+</ul>
+
+<p>or</p>
+
+<ul>
+  <li>encrypted</li>
+</ul>
+
+<p>Let’s see if there’s anything interesting in <code>.bash_history</code> that could help us figure out what <code>catz</code> is:</p>
+
+<pre><code>cats@ubuntu:~$ cat .bash_history
+clear
+cats@ubuntu:~$
+</code></pre>
+
+<p>It appears as though the user attempted to delete his/her history. Fortunately for us, they left a backup file (denoted by a <code>~</code> appended to the filename) and forgot to delete it. Let’s see what’s inside.</p>
+
+<pre><code>cats@ubuntu:~$ cat .bash_history~
+history
+veracrypt --help
+veracrypt -t -k "" --protexr-hidden=no  catz /home/cats/catz
+veracrypt -t -k "" --protect-hidden=no  catz /home/cats/catz
+veracrypt catz /media/veracrypt
+gedit /.bash_history
+ls
+clera
+clear
+history
+clear
+veracrypt dismount
+veracrypt dismount catz
+veracrypt -help
+veracrypt -d catz
+clear
+veracrypt -t -k "" --protect-hidden=no  catz /home/cats/catz
+veracrypt catz /media/veracrypt
+veracrypt -d catz
+clear
+sudo gedit ~/.bash_history
+cd var
+clear
+cd ..
+cd var
+clear
+ls
+cd ..
+ls
+cd vara
+cd var
+ls
+cd log
+ls
+gedit logkeys.log
+cat logkeys.log 
+sudo cat logkeys.log 
+nano logkeys.log 
+sudo nano logkeys.log 
+cat logkeys.log 
+sudo cat logkeys.log 
+clear
+sudo gedit ~/.bash_history
+cats@ubuntu:~$ 
+</code></pre>
+
+<p>Skimming through the history, there are a couple key things that we can gather from this:</p>
+
+<ul>
+  <li>The <code>catz</code> file is probably encrypted using a tool called <code>veracrypt</code> (because of the “crypt” at the end of the command name, and the “mounting” to /media/veracrypt)</li>
+  <li>The user edited the file <code>/var/log/logkeys.log</code>. We can guess that the user <em>probably</em> put the password in there</li>
+</ul>
+
+<p>Going into more detail, the command that was used to mount/decrypt the file was</p>
+
+<pre><code>veracrypt -t -k "" --protect-hidden=no  catz /home/cats/catz
+</code></pre>
+
+<p>If we look at the docs for <code>veracrypt</code> with <code>veracrypt --help</code>, there’s an example that matches this syntax:</p>
+
+<pre><code>Mount a volume prompting only for its password:
+veracrypt -t -k "" --protect-hidden=no volume.hc /media/veracrypt1
+</code></pre>
+
+<p>Great, all we need to do now is get the password. No key files or any other hassle!</p>
+
+<h3 id="decrypting-catz">Decrypting <code>catz</code></h3>
+
+<p>A simple <code>sudo cat /var/log/logkeys.log</code> (including the <code>sudo</code> because <code>/var/log/logkeys.log</code> is restricted) spits this out:</p>
+
+<pre><code>sudo apt-get install build-essential
+wget https://logkeys.googlecode.com/files/logkeys-.01.1a.tar.gz
+wget https://logkeys.googlecode.com/files/logkeys-0.1.1a.tar.gz
+tar xvzf logkeys-0.1.1a.tar.gz
+cd logkeys-0.1.1a/
+./configure
+make
+sudo make install
+sudo locale-gen
+sudo logkeys -s
+sudo gedit ~/.bash_history
+cler
+clear
+veracrypt -t -c
+1
+/home/cats/catz
+128 M
+1
+2
+2
+Me0wL3tMeInPl$
+Me0wL3tMeInPl$
+vyiivyiviparapvraivpyvyrivfyipefiyewyfwvpfiyewvfhnfzslc hvbhawbvklvhbsizbc awhbvua vawenvlfjvba;i vaw;vil;Vbhifvbahvbairk  iwbf irfirryarlhbvlhb ldbdkbvldv hbvhliebalkjverssnsnsr fefj g;ergp; gresgnlsbknbktjsnbkjtnkbjntsjrknblksnljsnb;ojrne orgse;go;egut;siggtibsi lknageosr;gnkjfd,n;ajrngout;fgnbseijrb f,nbs;efvmb gser
+</code></pre>
+
+<p>Although there’s a lot of assorted junk here, we can make an educated guess (based off of the “theme” of the problem) that `
+Me0wL3tMeInPl$` is the password used. </p>
+
+<p>Let’s give it a shot! We’ll mount it to <code>/media/catz_dec</code>.</p>
+
+<pre><code>cats@ubuntu:~$ sudo mkdir /media/catz_dec                                         #create the dir we'll mount it to
+cats@ubuntu:~$ veracrypt -t -k "" --protect-hidden=no  catz /media/catz_dec       #decrypt catz and mount it to /media/catz_dec as we saw in the docs
+Enter password for /home/cats/catz:                                               #enter "Me0wL3tMeInPl$" here
+cats@ubuntu:~$ 
+</code></pre>
+
+<h3 id="exploring-the-decrypted-volume">Exploring the decrypted volume</h3>
+
+<p>Veracrypt kindly brings up the decrypted volume in a Files window, and inside we find a directory named “CATZZZ”. If we enable “Show hidden and backup files” in <code>Edit</code>-&gt;<code>Preferences</code> in Files (this is almost always one of the first things one should do when exploring in Files), we can see that there are also a few other items:</p>
+
+<p><img src="https://i.imgur.com/SwJ0Z3E.png" alt="/media/catz_dec with hidden files enabled" /></p>
+
+<p>Let’s <code>cat</code> this new <code>.bash_history</code> and see if there’s anything interesting:</p>
+
+<pre><code>cats@ubuntu:~$ cat /media/catz_dec/.bash_history 
+pwd
+ls
+file catz
+clear
+rm catz
+clea
+clear
+ls
+clear
+veracrypt -t -c
+veracrypt -help
+veracrypt -t -k "" --protect-hidden=no volume.hc /home/cats/catz
+veracrypt -t -k "" --protect-hidden=no catz  /home/cats/catz
+veracrypt -t -k "" --protect-hidden=no catz  /home/cats/
+catz -explore
+veracrypt -explore
+veracrypt --explore
+veracrypt --explore catz
+ls
+cd catz
+ls
+cd ..
+clear
+ls
+cd ..
+clear
+cats@ubuntu:~$ 
+</code></pre>
+
+<p>It doesn’t seem so. Let’s move on and explore <code>/media/catz_dec/CATZZZ/</code>:</p>
+
+<p><img src="https://i.imgur.com/SVxlCve.png" alt="/media/catz_dec/CATZZZ" /></p>
+
+<p>Let’s jump in and take a look at a few of these to get an idea of what we’re dealing with.</p>
+
+<ul>
+  <li><code>anatomy.pdf</code> and <code>behavior.pdf</code> both appear to be Wikipedia articles on cats (we conclude this font, “Main article” tag, and “See also:” tag present in many Wikipedia articles). They seem innocent enough.</li>
+  <li><code>cat.jpg</code> and <code>cat&lt;2-6&gt;.jpg</code> appear to be (highly adorable) pictures of (very cute) cats. Again, nothing suspicious.
+    <ul>
+      <li><em>Note to self: find larger versions of these images and set as desktop background</em></li>
+    </ul>
+  </li>
+  <li><code>grooming.pdf</code> this one is . . . strangely empty. It has a blank white page, but nothing appears to be on it. Mentally flag this as “<strong>HIGHLY SUSPICIOUS</strong>”.</li>
+  <li><code>health.pdf</code> this pdf is <em>even emptier</em>! It doesn’t even have any pages. Again, flag this one for later.</li>
+  <li><code>Historyandmythology.pdf</code>, <code>Historyandmythology (1).pdf</code>, <code>physiology.pdf</code>, <code>poisoning.pdf</code>, <code>senses.pdf</code> all appear to be Wikipedia excerpts.</li>
+</ul>
+
+<p>Here are some images of the various PDFs:</p>
+
+<p><code>anatomy.pdf</code>, an example of the standard Wikipedia excerpts:</p>
+
+<p><img src="https://i.imgur.com/1S3rvFy.png" alt="anatomy.pdf, an example of the standard Wikipedia excerpts" /></p>
+
+<hr />
+
+<p><code>grooming.pdf</code>, a blank PDF:</p>
+
+<p><img src="https://i.imgur.com/9AeKPyk.png" alt="grooming.pdf, a blank PDF" /></p>
+
+<hr />
+
+<p><code>health.pdf</code>, a PDF with no pages:</p>
+
+<p><img src="https://i.imgur.com/6srVfGh.png" alt="health.pdf, a PDF with no pages" /></p>
+
+<hr />
+
+<p>Let’s take another look at <code>grooming.pdf</code>, one of the PDFs that we flagged. We can try running <code>strings</code> on it and grepping that for “flag” and see if it’s hidden in a comment somewhere:</p>
+
+<pre><code>cats@ubuntu:~$ strings /media/catz_dec/CATZZZ/grooming.pdf | grep "Flag"
+&lt;&lt; /Ascent 905.2734 /CapHeight 715.8203 /Descent -211.9141 /Flags 4 /FontBBox [ -627.9297 -376.4648 2033.6914 1047.8516 ] /FontFile2 12 0 R /FontName /Arial-BoldMT /ItalicAngle 0 /StemV 137.207 /Type /FontDescriptor &gt;&gt;
+cats@ubuntu:~$
+</code></pre>
+
+<p>Hmm, just a bogus result; nothing interesting. If we open it back up again, we can see the plain <em><strong>white</strong></em> background of a PDF. “White” is the key word there: something else that’s white won’t show up against it! (This realization took me a good couple of minutes of staring at a blank PDF . . .) We can use the handy “Select All” feature and whaddya know . . .</p>
+
+<p><img src="https://i.imgur.com/KM6Q7iD.png" alt="Using &quot;Select All&quot; reveals some white-colored text that contains the flag" /></p>
+
+<p>We get the flag!</p>
