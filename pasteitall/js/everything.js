@@ -1,7 +1,6 @@
 
 // Begin stuff
 $(function onReady() {
-    $("#loading").remove();
     var firebase = new Firebase("https://pasteitall.firebaseio.com/");
     var pastes = firebase.child("pastes");
     var location = getQueryStringKey("loc");
@@ -10,20 +9,41 @@ $(function onReady() {
         $("#paste").append($("<p></p>").html(escapeHtml(content).split("\n").join("<br>")));
     };
     if (location !== undefined) {
+        $("#loading").remove();
+        var noContent = function doShowNoContent() {
+            showContent("No content.");
+        };
         var locs = location.split("/");
         var group = locs[0];
         var id = locs[1];
         var content = pastes.child(group).child(id).child("content");
-        content.once("value", function(snapshot) {
-            console.log(snapshot + "LOADED");
+        content.once("value", function onLoaded(snapshot) {
+            if (snapshot.isEmpty()) {
+                noContent();
+                return;
+            }
             showContent(snapshot.val());
-        }, function (err) {
-            showContent("No content");
+        }, function onError() {
+            noContent();
         });
     } else {
-        showContent("No content");
+        displayPasteMakingTools();
     }
 });
+
+function displayPasteMakingTools() {
+    $.get("/pasteitall/paste.html").done(function loadedPasteHtml(html) {
+        console.log("much todo about: " + html);
+    }).fail(function whatTheHell(xhr, status, err) {
+        var why = status;
+        if (err) {
+            why += ": " + err;
+        }
+        $("#paste").append($("<p></p>").text(why));
+    }).always(function clearLoader() {
+        $("#loading").remove();
+    });
+}
 
 // look, I stole stuff from StackOverflow
 var entityMap = {
