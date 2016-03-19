@@ -34,7 +34,7 @@
                 </li>
                 -->
                 {% assign groups = "Home|About|Blog" | split: "|" %}
-                {% assign glinks = "/, /about.html, /blog.html" | split: ", " %}
+                {% assign glinks = "/, /about/, /blog/" | split: ", " %}
                 {% assign active = page.group %}
                 {% if post != null and active == null %}
                     {% assign active = "Blog" %}
