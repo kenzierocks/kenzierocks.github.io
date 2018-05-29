@@ -33,8 +33,8 @@
                     </ul>
                 </li>
                 -->
-                {% assign groups = "Home|About|Blog" | split: "|" %}
-                {% assign glinks = "/, /about/, /blog/" | split: ", " %}
+                {% assign groups = "Home|About|Blog|Reasons" | split: "|" %}
+                {% assign glinks = "/, /about/, /blog/, /reasons/" | split: ", " %}
                 {% assign active = page.group %}
                 {% if post != null and active == null %}
                     {% assign active = "Blog" %}
